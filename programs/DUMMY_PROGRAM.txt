@@ -1,0 +1,4 @@
+assign v 5
+assign x 10
+print add v x
+print v

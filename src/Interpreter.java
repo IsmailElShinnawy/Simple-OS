@@ -4,46 +4,50 @@ import java.util.TreeMap;
 
 public class Interpreter {
 
-    private static TreeMap<String, Object> memory;
-    private static Scanner sc;
+    private int pointer = 0;
+    private String currentInstructionParsed[];
+    private Memory memory;
+    private int programNumber;
 
-    public static void main(String[] args) throws InterruptedException, IOException {
-        String files[] = { "programs/Program 1.txt", "programs/Program 2.txt", "programs/Program 3.txt" };
+    public Interpreter(Memory memory) {
+        this.memory = memory;
+    }
 
-        for (String fileName : files) {
-            System.out.printf("------------RUNNING program @ %s------------\n", fileName);
-            sc = new Scanner(fileName);
-            memory = new TreeMap<String, Object>();
-            while (sc.ready()) {
-                String ins = sc.next();
-                switch (ins) {
-                    case "assign":
-                        assignHandler();
-                        break;
-                    case "add":
-                        addHandler();
-                        break;
-                    case "readFile":
-                        readFileHandler();
-                        break;
-                    case "writeFile":
-                        writeFileHandler();
-                        break;
-                    case "print":
-                        printHandler();
-                        break;
-                    case "input":
-                        inputHandler();
-                        break;
-                }
+    public void interpretInstruction(String ins, int programNumber) throws IOException {
+        setPointer(0);
+        setProgramNumber(programNumber);
+        currentInstructionParsed = ins.split(" ");
+        while (pointer < currentInstructionParsed.length) {
+            String command = getNext();
+            switch (command) {
+                case "assign":
+                    assignHandler();
+                    break;
+                case "add":
+                    addHandler();
+                    break;
+                case "readFile":
+                    readFileHandler();
+                    break;
+                case "writeFile":
+                    writeFileHandler();
+                    break;
+                case "print":
+                    printHandler();
+                    break;
+                case "input":
+                    inputHandler();
+                    break;
             }
         }
     }
 
-    private static void assignHandler() throws IOException {
-        String variable = sc.next();
+    private void assignHandler() throws IOException {
+        // String variable = sc.next();
+        String variable = getNext();
 
-        String data = sc.next();
+        // String data = sc.next();
+        String data = getNext();
         switch (data) {
             case "readFile":
                 data = readFileHandler();
@@ -52,14 +56,17 @@ public class Interpreter {
                 data = inputHandler();
                 break;
             default:
-                data = memory.containsKey(data) ? memory.get(data).toString() : data;
+                data = memory.containsVariable(data, programNumber + "") ? memory.getVariable(data, programNumber + "")
+                        : data;
         }
 
         try {
             int value = Integer.parseInt(data);
-            memory.put(variable, value);
+            // memory.put(variable, value);
+            memory.storeVariable(variable, value + "", programNumber + "");
         } catch (Exception e) {
-            memory.put(variable, data);
+            // memory.put(variable, data);
+            memory.storeVariable(variable, data, programNumber + "");
         }
 
     }
@@ -70,7 +77,7 @@ public class Interpreter {
      * 
      * @return the addition of two integer numbers
      */
-    private static int addHandler() throws IOException {
+    private int addHandler() throws IOException {
         // 1. read the next token using sc.next() -> should be 1st operand
         // 2. handle the cases as mentioned in readFile and writeFile
         // 3. same as 1 & 2 but for 2nd token -> should be 2nd operand
@@ -81,7 +88,8 @@ public class Interpreter {
         // value
 
         // 6. return the result of addition
-        String firstOperand = sc.next();
+        // String firstOperand = sc.next();
+        String firstOperand = getNext();
         String variableName = null;
         boolean flag = false;
         switch (firstOperand) {
@@ -92,15 +100,21 @@ public class Interpreter {
                 firstOperand = inputHandler();
                 break;
             default: {
-                flag = memory.containsKey(firstOperand);
+                // flag = memory.containsKey(firstOperand);
+                flag = memory.containsVariable(firstOperand, programNumber + "");
                 if (flag) {
                     variableName = firstOperand;
                 }
-                firstOperand = memory.containsKey(firstOperand) ? memory.get(firstOperand).toString() : firstOperand;
+                // firstOperand = memory.containsKey(firstOperand) ?
+                // memory.get(firstOperand).toString() : firstOperand;
+                firstOperand = memory.containsVariable(firstOperand, programNumber + "")
+                        ? memory.getVariable(firstOperand, programNumber + "")
+                        : firstOperand;
             }
         }
 
-        String secondOperand = sc.next();
+        // String secondOperand = sc.next();
+        String secondOperand = getNext();
         switch (secondOperand) {
             case "readFile":
                 secondOperand = readFileHandler();
@@ -109,13 +123,18 @@ public class Interpreter {
                 secondOperand = inputHandler();
                 break;
             default:
-                secondOperand = memory.containsKey(secondOperand) ? memory.get(secondOperand).toString()
+                // secondOperand = memory.containsKey(secondOperand) ?
+                // memory.get(secondOperand).toString()
+                // : secondOperand;
+                secondOperand = memory.containsVariable(secondOperand, programNumber + "")
+                        ? memory.getVariable(secondOperand, programNumber + "")
                         : secondOperand;
         }
         int first = Integer.parseInt(firstOperand);
         int second = Integer.parseInt(secondOperand);
         if (flag) {
-            memory.put(variableName, first + second);
+            // memory.put(variableName, first + second);
+            memory.storeVariable(variableName, (first + second) + "", programNumber + "");
         }
         return first + second;
 
@@ -127,7 +146,7 @@ public class Interpreter {
      * 
      * @return String representation of the content of the file
      */
-    private static String readFileHandler() throws IOException {
+    private String readFileHandler() throws IOException {
         // check printHandler for an idea about how I handled it
         // 1. read the next token by using sc.next() -> should be fileName
         // 2. check if the read token is another system call and if so then
@@ -144,7 +163,8 @@ public class Interpreter {
         // contents
         // of the file and return it
 
-        String filename = sc.next();
+        // String filename = sc.next();
+        String filename = getNext();
         switch (filename) {
             case "readFile":
                 filename = readFileHandler();
@@ -153,7 +173,11 @@ public class Interpreter {
                 filename = inputHandler();
                 break;
             default:
-                filename = memory.containsKey(filename) ? memory.get(filename).toString() : filename;
+                // filename = memory.containsKey(filename) ? memory.get(filename).toString() :
+                // filename;
+                filename = memory.containsVariable(filename, programNumber + "")
+                        ? memory.getVariable(filename, programNumber + "")
+                        : filename;
         }
         Scanner fileScanner = new Scanner(filename);
         return fileScanner.readFile();
@@ -163,7 +187,7 @@ public class Interpreter {
      * Handles the writeFile call by getting the fileName to write to and the data
      * to be written and then writing it
      */
-    private static void writeFileHandler() throws IOException {
+    private void writeFileHandler() throws IOException {
         // check printHandler for an idea about how I handled it
         // 1. read the next token by using sc.next() -> should be fileName
         // 2. check if the read token is another system call and if so then
@@ -183,7 +207,8 @@ public class Interpreter {
         // to the
         // file
 
-        String fileName = sc.next();
+        // String fileName = sc.next();
+        String fileName = getNext();
         switch (fileName) {
             case "readFile":
                 fileName = readFileHandler();
@@ -192,10 +217,13 @@ public class Interpreter {
                 fileName = inputHandler();
                 break;
             default:
-                fileName = memory.containsKey(fileName) ? memory.get(fileName).toString() : fileName;
+                fileName = memory.containsVariable(fileName, programNumber + "")
+                        ? memory.getVariable(fileName, programNumber + "")
+                        : fileName;
         }
 
-        String data = sc.next();
+        // String data = sc.next();
+        String data = getNext();
         switch (data) {
             case "readFile":
                 data = readFileHandler();
@@ -207,7 +235,9 @@ public class Interpreter {
                 data = inputHandler();
                 break;
             default:
-                data = memory.containsKey(data) ? memory.get(data).toString() : data;
+                // data = memory.containsKey(data) ? memory.get(data).toString() : data;
+                data = memory.containsVariable(data, programNumber + "") ? memory.getVariable(data, programNumber + "")
+                        : data;
         }
 
         PrintWriter fileWriter = new PrintWriter(fileName);
@@ -223,8 +253,9 @@ public class Interpreter {
      * 
      * @throws IOException
      */
-    private static void printHandler() throws IOException {
-        String toPrint = sc.next();
+    private void printHandler() throws IOException {
+        // String toPrint = sc.next();
+        String toPrint = getNext();
         switch (toPrint) {
             case "readFile":
                 toPrint = readFileHandler();
@@ -236,7 +267,11 @@ public class Interpreter {
                 toPrint = inputHandler();
                 break;
             default:
-                toPrint = memory.containsKey(toPrint) ? memory.get(toPrint).toString() : toPrint;
+                // toPrint = memory.containsKey(toPrint) ? memory.get(toPrint).toString() :
+                // toPrint;
+                toPrint = memory.containsVariable(toPrint, programNumber + "")
+                        ? memory.getVariable(toPrint, programNumber + "")
+                        : toPrint;
         }
         System.out.println(toPrint);
     }
@@ -250,5 +285,17 @@ public class Interpreter {
         System.out.println("WAITING FOR INPUT...");
         Scanner inputScanner = new Scanner(System.in);
         return inputScanner.nextLine();
+    }
+
+    private void setPointer(int pointer) {
+        this.pointer = pointer;
+    }
+
+    private String getNext() {
+        return currentInstructionParsed[pointer++];
+    }
+
+    private void setProgramNumber(int programNumber) {
+        this.programNumber = programNumber;
     }
 }

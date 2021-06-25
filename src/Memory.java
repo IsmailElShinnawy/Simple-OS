@@ -1,3 +1,5 @@
+import java.util.HashMap;
+
 public class Memory {
 
     // memory is represented as a 2D-array of Strings where the first column
@@ -26,7 +28,7 @@ public class Memory {
         this.maximumProcessSize = maximumProcessSize;
     }
 
-    public void initializePCB(int programNumber) {
+    public void storePCB(int programNumber, HashMap<String, String> pcb) {
         // starting at the currentEmptyProcessLocation initialize the PCB of the
         // program
         // row # | key | value
@@ -42,9 +44,9 @@ public class Memory {
 
         int i = currentEmptyProcessLocation;
         memory[i][0] = "pid_" + programNumber + "";
-        memory[i][1] = programNumber + "";
+        memory[i][1] = pcb.get("pid") + "";
         memory[i + 1][0] = "pstate_" + programNumber + "";
-        memory[i + 1][1] = "not running";
+        memory[i + 1][1] = pcb.get("pstate");
         memory[i + 2][0] = "pc_" + programNumber + "";
         memory[i + 2][1] = i + 5 + "";
         memory[i + 3][0] = "start-address_" + programNumber + "";
@@ -137,6 +139,18 @@ public class Memory {
         return "variable not found";
     }
 
+    public boolean containsVariable(String variableName, String programNumber) {
+        int programNum = Integer.parseInt(programNumber);
+        int processPosition = ((programNum - 1) * maximumProcessSize);
+        int processEnd = processPosition + maximumProcessSize;
+        for (int i = processPosition; i < processEnd; i++) {
+            if (memory[i][0].equals(variableName + "_" + programNumber)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void setProcessState(String programNumber, String state) {
         // finds the memory block for this program using the programNumber, then
         // updates
@@ -160,13 +174,19 @@ public class Memory {
 
     public static void main(String[] args) {
         Memory m = new Memory(3, 13);
-        m.initializePCB(1);
+        HashMap<String, String> pcb1 = new HashMap<String, String>();
+        pcb1.put("pid", "1");
+        pcb1.put("pstate", "not running");
+        m.storePCB(1, pcb1);
         m.storeInstructions(new String[] { "test-1a", "test-1b", "test-1c" }, "1");
         m.storeVariable("a", "34", "1");
         System.out.println(m.getNextInstruction("1"));
         System.out.println(m.getNextInstruction("1"));
         System.out.println(m.getVariable("a", "1"));
-        m.initializePCB(2);
+        HashMap<String, String> pcb2 = new HashMap<String, String>();
+        pcb2.put("pid", "2");
+        pcb2.put("pstate", "not running");
+        m.storePCB(2, pcb2);
         m.storeInstructions(new String[] { "test-2", "test-2" }, "2");
         m.storeVariable("b", "89", "2");
         System.out.println(m);

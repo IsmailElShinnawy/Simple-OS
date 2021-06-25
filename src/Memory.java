@@ -93,8 +93,9 @@ public class Memory {
         int programNum = Integer.parseInt(programNumber);
         int processPosition = ((programNum - 1) * maximumProcessSize);
         int instructionPosition = processPosition + 5;
+        int processEndPosition = Integer.parseInt(memory[processPosition + 4][1]);
         int instructionCount = 0;
-        for (int i = 0; i < memory.length; i++) {
+        for (int i = instructionPosition; i <= processEndPosition; i++) {
             if (i == instructionPosition) {
                 memory[i][0] = "ins-" + instructionCount + "_" + programNumber;
 
@@ -155,7 +156,7 @@ public class Memory {
         int programNum = Integer.parseInt(programNumber);
         int processPosition = ((programNum - 1) * maximumProcessSize);
         int processEnd = processPosition + maximumProcessSize;
-        for (int i = processPosition; i < processEnd; i++) {
+        for (int i = processPosition; i <= processEnd; i++) {
             if (memory[i][0] == null || memory[i][0].equals(variableName + "_" + programNumber)) {
                 memory[i][0] = variableName + "_" + programNumber;
                 memory[i][1] = variableValue;
@@ -238,9 +239,9 @@ public class Memory {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("row#\tkey\t\tvalue\n");
+        StringBuilder sb = new StringBuilder(String.format("%-20s%-20s%-20s\n", "row#", "key", "value"));
         for (int i = 0; i < memory.length; ++i) {
-            sb.append(String.format("%d\t%s\t\t%s\n", i, memory[i][0], memory[i][1]));
+            sb.append(String.format("%-20d%-20s%-20s\n", i, memory[i][0], memory[i][1]));
         }
         return sb.toString();
     }
